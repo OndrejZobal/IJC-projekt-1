@@ -1,4 +1,5 @@
 
+#define BITS_IN_BYTE 8
 // Typ bitového pole (pro předávání parametru do funkce odkazem).
 typedef unsigned long int bitset_t;
 // Typ indexu do bitového pole.
