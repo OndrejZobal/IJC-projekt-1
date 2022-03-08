@@ -1,48 +1,39 @@
 #include "bitset.h"
 #include <stdlib.h>
+#include <assert.h>
 
-#define bitset_create(array, size) ({ \
-    for(bitset_index_t i = 1; i < size; i++) { \
-        array[i] = 0;                          \
-    }                                          \
-    array[0] = size-1;                         \
-})
+#define bitset_size_to_bits(size) size / (sizeof(bitset_index_t) * BITS_IN_BYTE) + 1 + (size % (sizeof(bitset_index_t) * BITS_IN_BYTE) != 0)
 
-#define bitset_new_create(name, size) ({ \
-    bitset_t name[size]; \
-    \
-    for(bitset_index_t i = 1; i < size; i++) { \
-        name[i] = 0;                          \
-    }                                          \
-    name[0] = size-1;                         \
-    name; \
-})
+#define bitset_create(name, size) \
+    static_assert(size > 0);                        \
+    bitset_index_t name[bitset_size_to_bits(size)] = {size}
 
 // FIXME
-#define bitset_alloc(array, size) ({  \
-    bitset_t *array = malloc(size * sizeof(bitset_t)); \
-    if(array == NULL) { \
-        fprintf(stderr, "bitset_alloc: Chyba alokace paměti"); \
+#define bitset_alloc(name, size)                                        \
+    static_assert(size > 0);                                            \
+    bitset_t name = calloc(bitset_size_to_bits(size), sizeof(bitset_index_t));                    \
+    if (name == NULL) { \
+        printf("cannot allocate memory!\n"); \
         exit(1); \
     } \
-    \
-    bitset_create(array, size); \
-})
+    name[0] = size
 
-#define bitset_size(array) ( array[0] * sizeof(bitset_t) * BITS_IN_BYTE )
+#define bitset_free(name) free(name)
+
+#define bitset_size(array) array[0]
 
 #define bitset_setbit(array, index, expression) ({  \
     int status = 1; \
     /* Calculationg the index in the long int array. */ \
-    bitset_index_t location = index + sizeof(bitset_t) * BITS_IN_BYTE; \
-    int array_index = location / (sizeof(bitset_t) * BITS_IN_BYTE); \
+    bitset_index_t location = index + sizeof(bitset_index_t) * BITS_IN_BYTE; \
+    int array_index = location / (sizeof(bitset_index_t) * BITS_IN_BYTE); \
     \
-    if (location >= bitset_size(array) + sizeof(bitset_t) * BITS_IN_BYTE) { \
+    if (location >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) { \
         status = 0; \
     } \
     else {                                      \
         int val; \
-        val = 1 << (location % (sizeof(bitset_t) * BITS_IN_BYTE)); \
+        val = 1 << (location % (sizeof(bitset_index_t) * BITS_IN_BYTE)); \
         if (expression != 0) { \
             array[array_index] = array[array_index] | val; \
         } \
@@ -61,16 +52,16 @@
 })
 
 #define bitset_getbit(array, index) ({  \
-    bitset_index_t location = index + sizeof(bitset_t) * BITS_IN_BYTE; \
-    int array_index = location / (sizeof(bitset_t) * BITS_IN_BYTE); \
+    bitset_index_t location = index + sizeof(bitset_index_t) * BITS_IN_BYTE; \
+    int array_index = location / (sizeof(bitset_index_t) * BITS_IN_BYTE); \
     int value; \
-    if (location >= bitset_size(array) * sizeof(bitset_t)) { \
-        fprintf(stderr, "Borked!"); \
+    if (location >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) { \
+        fprintf(stderr, "Borked!\n"); \
         exit(1);\
     } \
     else { \
-        value = array[array_index] >> (location % (sizeof(bitset_t) * BITS_IN_BYTE)); \
-        value = ((bitset_t) 1) & value; \
+        value = array[array_index] >> (location % (sizeof(bitset_index_t) * BITS_IN_BYTE)); \
+        value = ((bitset_index_t) 1) & value; \
     } \
     value; \
 })
