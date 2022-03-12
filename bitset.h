@@ -37,10 +37,11 @@ typedef unsigned long int bitset_index_t;
     bitset_index_t location = index + sizeof(bitset_index_t) * BITS_IN_BYTE;\
     \
     int array_index = location / (sizeof(bitset_index_t) * BITS_IN_BYTE);\
-    int status;\
     \
     if (location >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) {\
-        status = 0;\
+        /* FIXME use error.h */ \
+        fprintf(stderr, "out of bounds\n"); \
+        exit(1); \
     }\
     else {\
         bitset_index_t val = 1L << (location % (sizeof(bitset_index_t) * BITS_IN_BYTE));\
@@ -51,23 +52,15 @@ typedef unsigned long int bitset_index_t;
             val = ~val;\
             array[array_index] &= val;\
         }\
-        status = 1;\
     } \
-    /* TODO is this needed?? */ \
-    status;\
 } while(0);
 
-#define bitset_getbit(array, index) ({  \
-    bitset_index_t location = index + sizeof(bitset_index_t) * BITS_IN_BYTE;  \
-    \
-    int array_index = location / (sizeof(bitset_index_t) * BITS_IN_BYTE);  \
-    if (location >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) {  \
-        fprintf(stderr, "Borked!\n");  \
-        exit(1); \
-    }  \
-    bitset_index_t value = array[array_index] >> (location % (sizeof(bitset_index_t) * BITS_IN_BYTE));  \
-    (int)(1 & value);  \
-})
+#define bitset_getbit(array, index) ( \
+    (index + sizeof(bitset_index_t) * BITS_IN_BYTE >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) ? \
+    exit(1),1 :                                                           \
+    /* lisp moment */ \
+    (int) (1 & (array[/*array_index */ ((/*location: */ index + sizeof(bitset_index_t) * BITS_IN_BYTE) / (sizeof(bitset_index_t) * BITS_IN_BYTE))] >> ((/* location: */ index + sizeof(bitset_index_t) * BITS_IN_BYTE) % ( /* size in bits */ sizeof(bitset_index_t) * BITS_IN_BYTE)))) \
+    )
 
 /*
  * Inlines
@@ -83,7 +76,7 @@ inline bitset_index_t bitset_size(bitset_t array) {
     return array[0];
 }
 
-inline int bitset_setbit(bitset_t array, bitset_index_t index, int expression) {
+inline void bitset_setbit(bitset_t array, bitset_index_t index, int expression) {
     // location is index + 1 long in bits (for storing the size).
     bitset_index_t location = index + sizeof(bitset_index_t) * BITS_IN_BYTE; 
 
@@ -92,8 +85,10 @@ inline int bitset_setbit(bitset_t array, bitset_index_t index, int expression) {
     
     // If location is larger or equal to the full size + size long.
     if (location >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) { 
-        return 0;
-    } 
+        // FIXME use error.h
+        fprintf(stderr, "out of bounds\n");
+        exit(1);
+    }
     else {                                      
         bitset_index_t val = 1L << (location % (sizeof(bitset_index_t) * BITS_IN_BYTE)); 
         if (expression) { 
@@ -105,7 +100,6 @@ inline int bitset_setbit(bitset_t array, bitset_index_t index, int expression) {
         } 
     } 
     /* TODO is this needed?? */ 
-    return 1; 
 }
 
 inline int bitset_getbit(bitset_t array, bitset_index_t index) {
@@ -118,10 +112,8 @@ inline int bitset_getbit(bitset_t array, bitset_index_t index) {
         fprintf(stderr, "Borked!\n"); 
         exit(1);
     } 
-    bitset_index_t value = array[array_index] >> (location % (sizeof(bitset_index_t) * BITS_IN_BYTE)); 
+    bitset_index_t value = array[array_index] >> (location % (sizeof(bitset_index_t) * BITS_IN_BYTE));
     return 1 & value;
 }
 
 #endif
-
-void bit_matrix(bitset_t numbers);

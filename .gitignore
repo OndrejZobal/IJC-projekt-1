@@ -1,1 +1,7 @@
+primes
+primes-i
+
+*.o
+
 build/
+.vscode/
