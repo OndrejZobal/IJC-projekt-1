@@ -15,7 +15,7 @@ typedef unsigned long int bitset_index_t;
     bitset_index_t name[bitset_size_to_bits(size)] = {size}
 
 #define bitset_alloc(name, size)                                        \
-    static_assert(size > 0);                                            \
+    assert(size > 0);                                            \
     bitset_t name = calloc(bitset_size_to_bits(size), sizeof(bitset_index_t));                    \
     if (name == NULL) { \
         printf("cannot allocate memory!\n"); \
@@ -68,6 +68,9 @@ typedef unsigned long int bitset_index_t;
 
 #else
 
+#ifndef BITSET_INCLUDE_ONCE
+#define BITSET_INCLUDE_ONCE 1
+
 inline void bitset_free(bitset_t name) {
     free(name);
 }
@@ -86,8 +89,7 @@ inline void bitset_setbit(bitset_t array, bitset_index_t index, int expression) 
     // If location is larger or equal to the full size + size long.
     if (location >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) { 
         // FIXME use error.h
-        fprintf(stderr, "out of bounds\n");
-        exit(1);
+        error_exit("bitset_getbit: Index %lu mimo rozsah 0..%lu", index, bitset_size(array));
     }
     else {                                      
         bitset_index_t val = 1L << (location % (sizeof(bitset_index_t) * BITS_IN_BYTE)); 
@@ -102,6 +104,8 @@ inline void bitset_setbit(bitset_t array, bitset_index_t index, int expression) 
     /* TODO is this needed?? */ 
 }
 
+extern void warning_msg(const char *fmt, ...);
+
 inline int bitset_getbit(bitset_t array, bitset_index_t index) {
     // location is index + 1 long in bits (for storing the size).
     bitset_index_t location = index + sizeof(bitset_index_t) * BITS_IN_BYTE; 
@@ -109,11 +113,12 @@ inline int bitset_getbit(bitset_t array, bitset_index_t index) {
     // Location converted to index for long array.
     int array_index = location / (sizeof(bitset_index_t) * BITS_IN_BYTE); 
     if (location >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) { 
-        fprintf(stderr, "Borked!\n"); 
-        exit(1);
-    } 
+        //fprintf(stderr, "Borked!\n");
+        error_exit("bitset_getbit: Index %lu mimo rozsah 0..%lu", index, bitset_size(array));
+    }
     bitset_index_t value = array[array_index] >> (location % (sizeof(bitset_index_t) * BITS_IN_BYTE));
     return 1 & value;
 }
 
+#endif
 #endif

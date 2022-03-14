@@ -1,8 +1,12 @@
 #include <math.h>
 #include "eratosthenes.h"
+#include "error.c"
 
 // FIXME čtyřicet dvojka nějakým způsobem odjevábá sedimčku.
 // TODO předělej to na inliny a vydebuguj to reee
+
+extern void warning_msg(const char *fmt, ...);
+extern void error_exit(const char *fmt, ...);
 
 void Eratosthenes(bitset_t pole) {
     // Calculating primes.

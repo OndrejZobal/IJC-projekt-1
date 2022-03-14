@@ -5,6 +5,8 @@
 #define LIMIT 300000000
 #define PRINT_LIMIT 10
 
+extern void warning_msg(const char *fmt, ...);
+
 void print_last_primes(bitset_t pole, int print_limit) {
     bitset_index_t last_numbers[print_limit];
     // Printing last primes.
@@ -18,6 +20,7 @@ void print_last_primes(bitset_t pole, int print_limit) {
     for (int i = print_limit-1; i >= 0; i--) {
         printf("%ld\n", last_numbers[i]);
     }
+    bitset_getbit(pole, LIMIT+1);
 }
 
 int main() {

@@ -40,7 +40,7 @@ clean:
 	rm $(BUILD_DIR)/*.o
 
 # Calls another instance of make and builds primes with inline functions
-primes-i:
+primes-i: bitset.h
 	make debug=$(debug) USE_INLINE=1 primes-i-full
 
 # primes (exec), calls primes.o, eratosthenes.o and bitset.o
@@ -50,14 +50,26 @@ primes-i-full: $(BUILD_DIR)/primes$(SUFFIX).o $(BUILD_DIR)/eratosthenes$(SUFFIX)
 primes: $(BUILD_DIR)/primes$(SUFFIX).o $(BUILD_DIR)/eratosthenes$(SUFFIX).o
 	$(CC) $(CFLAGS) -o primes $^ $(LIBS)
 
+$(BUILD_DIR)/error.o: error.c error.h
+	$(CC) $(CFLAGS) -c -o $@ error.c
+	echo "nothing!"
+
 # primes.o
-$(BUILD_DIR)/primes$(SUFFIX).o: primes.c
-	$(CC) $(CFLAGS) -c -o $@ $^
+$(BUILD_DIR)/primes$(SUFFIX).o: primes.c error.o eratosthenes.h $(BUILD_DIR)/error.o
+	$(CC) $(CFLAGS) -c -o $@ primes.c
 
 # eratosthenes.o
-$(BUILD_DIR)/eratosthenes$(SUFFIX).o: eratosthenes.c bitset.h
+$(BUILD_DIR)/eratosthenes$(SUFFIX).o: eratosthenes.c bitset.h $(BUILD_DIR)/error.o
 	$(CC) $(CFLAGS) -c -o $@ eratosthenes.c
+
+# B
+$(BUILD_DIR)/ppm.o: ppm.c
+	$(CC) $(CFLAGS) -c -o $@ $^
+
+$(BUILD_DIR)/steg-decode: $(BUILD_DIR)/ppm.o steg-decode.c $(BUILD_DIR)/eratosthenes$(SUFFIX).o
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 # # bitset.o
 # $(BUILD_DIR)/bitset.o: bitset.c
 # 	$(CC) $(CFLAGS) -c -o $@ $^
+
