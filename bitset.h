@@ -1,20 +1,20 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
-#include <error.h>
-
-extern void warning_msg(const char *fmt, ...);
+#include "error.h"
 
 #define BITS_IN_BYTE 8
 #define MODUL_NAME "bitset"
+
+extern void error_exit(const char *fmt, ...);
+extern void warning_msg(const char *fmt, ...);
+
 // Typ bitového pole (pro předávání parametru do funkce odkazem).
 typedef unsigned long int *bitset_t;
 // Typ indexu do bitového pole.
 typedef unsigned long int bitset_index_t;
 
-extern void error_exit(const char *fmt, ...);
-extern void warning_msg(const char *fmt, ...);
-
+// Converts an amount of bitset_t array members into bits.
 #define bitset_size_to_bits(size) size / (sizeof(bitset_index_t) * BITS_IN_BYTE) + 1 + (size % (sizeof(bitset_index_t) * BITS_IN_BYTE) != 0)
 
 #define bitset_create(name, size) \

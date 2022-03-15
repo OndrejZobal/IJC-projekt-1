@@ -1,6 +1,9 @@
+# Bins
 primes
 primes-i
+steg-decode
 
+# Object files
 *.o
 
 build/

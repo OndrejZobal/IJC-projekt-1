@@ -1,6 +1,5 @@
 #include <math.h>
 #include "eratosthenes.h"
-#include "error.c"
 
 // FIXME čtyřicet dvojka nějakým způsobem odjevábá sedimčku.
 // TODO předělej to na inliny a vydebuguj to reee

@@ -1,6 +1,5 @@
 CC = gcc
 CFLAGS = -std=c11 -pedantic -Wall -Wextra
-BUILD_DIR = .
 SUFFIX =
 LIBS = -lm
 STEGFILE = du1-obrazek.ppm
@@ -28,49 +27,44 @@ endif
 .PHONY: build run clean primes-i-full
 
 # Builds both variants of the program
-build: primes primes-i $(BUILD_DIR)/steg-decode
+build: primes primes-i steg-decode
 
 # Builds and runs both variants of the program
 run: build
-	$(BUILD_DIR)/primes
-	$(BUILD_DIR)/primes-i
-	$(BUILD_DIR)/steg-decode $(STEGFILE)
+	./primes
+	./primes-i
+	./steg-decode $(STEGFILE)
 
-# Removes objects and executable files from BUILD_DIR.
+# Removes objects and executable files.
 clean:
-	find $(BUILD_DIR) -maxdepth 1 -type f -executable -exec rm {} +
-	rm $(BUILD_DIR)/*.o
+	find . -maxdepth 1 -type f -executable -exec rm {} +
+	rm *.o
 
 # Calls another instance of make and builds primes with inline functions
-primes-i: bitset.h
-	make debug=$(debug) USE_INLINE=1 primes-i-full
+primes-i: primes$(SUFFIX).o eratosthenes$(SUFFIX).o error.o
+	make debug=$(debug) 32bit=$(32bit) USE_INLINE=1 primes-i-full
 
 # primes (exec), calls primes.o, eratosthenes.o and bitset.o
-primes-i-full: $(BUILD_DIR)/primes$(SUFFIX).o $(BUILD_DIR)/eratosthenes$(SUFFIX).o
+primes-i-full: primes$(SUFFIX).o eratosthenes$(SUFFIX).o error.o
 	$(CC) $(CFLAGS) -o primes-i $^ $(LIBS)
 
-primes: $(BUILD_DIR)/primes$(SUFFIX).o $(BUILD_DIR)/eratosthenes$(SUFFIX).o
+primes: primes$(SUFFIX).o eratosthenes$(SUFFIX).o error.o
 	$(CC) $(CFLAGS) -o primes $^ $(LIBS)
 
-$(BUILD_DIR)/error.o: error.c error.h
+error.o: error.c error.h
 	$(CC) $(CFLAGS) -c -o $@ error.c
 
 # primes.o
-$(BUILD_DIR)/primes$(SUFFIX).o: primes.c error.o eratosthenes.h $(BUILD_DIR)/error.o
+primes$(SUFFIX).o: primes.c eratosthenes.h
 	$(CC) $(CFLAGS) -c -o $@ primes.c
 
 # eratosthenes.o
-$(BUILD_DIR)/eratosthenes$(SUFFIX).o: eratosthenes.c bitset.h $(BUILD_DIR)/error.o
+eratosthenes$(SUFFIX).o: eratosthenes.c bitset.h
 	$(CC) $(CFLAGS) -c -o $@ eratosthenes.c
 
 # B
-$(BUILD_DIR)/ppm.o: ppm.c
+ppm.o: ppm.c
 	$(CC) $(CFLAGS) -c -o $@ $^
 
-$(BUILD_DIR)/steg-decode: $(BUILD_DIR)/ppm.o steg-decode.c $(BUILD_DIR)/eratosthenes$(SUFFIX).o
+steg-decode: ppm.o steg-decode.c eratosthenes$(SUFFIX).o error.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
-
-# # bitset.o
-# $(BUILD_DIR)/bitset.o: bitset.c
-# 	$(CC) $(CFLAGS) -c -o $@ $^
-
