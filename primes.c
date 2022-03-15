@@ -20,7 +20,6 @@ void print_last_primes(bitset_t pole, int print_limit) {
     for (int i = print_limit-1; i >= 0; i--) {
         printf("%ld\n", last_numbers[i]);
     }
-    bitset_getbit(pole, LIMIT+1);
 }
 
 int main() {
@@ -31,4 +30,5 @@ int main() {
     print_last_primes(numbers, PRINT_LIMIT);
 
     bitset_free(numbers);
+    return 0;
 }

@@ -3,6 +3,7 @@ CFLAGS = -std=c11 -pedantic -Wall -Wextra
 BUILD_DIR = .
 SUFFIX =
 LIBS = -lm
+STEGFILE = du1-obrazek.ppm
 
 
 # Adds either debug info or optimization
@@ -18,7 +19,7 @@ CFLAGS += -DUSE_INLINE
 SUFFIX += -i
 endif
 
-# Will build the inline variant
+# Compile to 32bit
 ifeq ($(32bit), 1)
 CFLAGS += -m32
 endif
@@ -27,12 +28,13 @@ endif
 .PHONY: build run clean primes-i-full
 
 # Builds both variants of the program
-build: primes primes-i
+build: primes primes-i $(BUILD_DIR)/steg-decode
 
 # Builds and runs both variants of the program
 run: build
 	$(BUILD_DIR)/primes
 	$(BUILD_DIR)/primes-i
+	$(BUILD_DIR)/steg-decode $(STEGFILE)
 
 # Removes objects and executable files from BUILD_DIR.
 clean:
@@ -52,7 +54,6 @@ primes: $(BUILD_DIR)/primes$(SUFFIX).o $(BUILD_DIR)/eratosthenes$(SUFFIX).o
 
 $(BUILD_DIR)/error.o: error.c error.h
 	$(CC) $(CFLAGS) -c -o $@ error.c
-	echo "nothing!"
 
 # primes.o
 $(BUILD_DIR)/primes$(SUFFIX).o: primes.c error.o eratosthenes.h $(BUILD_DIR)/error.o

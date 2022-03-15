@@ -9,7 +9,7 @@
 #define START_PRIME 29
 #define COLOR_CHANNELS 3
 #define SECRET_MESSAGE_BUFFER_SIZE 300
-
+#define MODULE_NAME "steg-decode"
 
 void bit_matrix(bitset_t numbers) {
     printf("\t\t1 2 3 4 5 6 7 8\n");
@@ -62,8 +62,7 @@ int main(int argc, char **argv){
     struct ppm *image = ppm_read(*(argv+1));
 
     if (image == NULL) {
-        fprintf(stderr, "reeee its nulla\n");
-        return 1;
+        error_exit("%s: Obrázek nelze načíst!", MODULE_NAME);
     }
 
     bitset_alloc(bitset, image->xsize * image->ysize * COLOR_CHANNELS+1);

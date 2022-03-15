@@ -3,13 +3,18 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <error.h>
 
+#define MODUL_NAME "ppm"
 #define PPM_MAGIC_NUMBER "P6"
 #define COLOR_CHANNELS 3
-
+#define SUPPORTED_MAX_VAL "255"
 #define SIZE_INCREMENT 8
-#define WHITESPACE_SIZE 5
 
+extern void warning_msg(const char *fmt, ...);
+extern void error_exit(const char *fmt, ...);
+
+#define WHITESPACE_SIZE 5
 const char whitespace[WHITESPACE_SIZE] = {'\0', ' ', '\t', '\r', '\n'};
 
 void add_char(char **string, int *size, int *length, const char c) {
@@ -19,8 +24,7 @@ void add_char(char **string, int *size, int *length, const char c) {
         *string = realloc(*string, sizeof(string) * *size);
         if (*string == NULL) {
             // FIXME add actual error message
-            fprintf(stderr, "ppm: Nelze alokovat paměť na hromadě!\n");
-            error(1);
+            error_exit("%s: Nelze alokovat paměť na hromadě!", MODUL_NAME);
         }
     }
     (*string)[(*length)++] = c;
@@ -34,10 +38,10 @@ void reset_string(char **string, int *size, int *length) {
     *size = SIZE_INCREMENT;
     *length = 0;
 
+
     *string = malloc(sizeof(char) * *size);
     if (*string == NULL) {
-        printf("big bad");
-        exit(1);
+        error_exit("%s Nelze alokovat paměť na hromadě!", MODUL_NAME);
     }
     *string[0] = '\0';
 }
@@ -68,6 +72,7 @@ struct ppm *ppm_read(const char *filename) {
     enum stage s = MAGIC_NUMBER;
 
     if (file == NULL) {
+        warning_msg("%s: Soubor \"%s\" nelze otevřít!", MODUL_NAME, filename);
         goto error;
     }
 
@@ -77,6 +82,7 @@ struct ppm *ppm_read(const char *filename) {
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
                     // Check if the filetype is supported
                     if(strcmp(PPM_MAGIC_NUMBER, string)) {
+                        warning_msg("%s: Formát obrázku \"%s\" není podporován! Program podporuje formát PPM %s!", MODUL_NAME, filename, PPM_MAGIC_NUMBER);
                         goto error;
                     }
                     s = WIDTH;
@@ -90,9 +96,14 @@ struct ppm *ppm_read(const char *filename) {
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
                     // Check if the filetype is supported
                     char *ptr = NULL;
+                    if(string_length < 1) {
+                        warning_msg("%s: Obrázku \"%s\" má neplatnou šířku!", MODUL_NAME, filename);
+                        goto error;
+                    }
                     int width = strtol(string, &ptr, 10);
                     if(width == 0) {
                         fprintf(stderr, "Nulova sirka\n");
+                        warning_msg("%s: Obrázku \"%s\" má neplatnou šířku!", MODUL_NAME, filename);
                         goto error;
                     }
 
@@ -109,8 +120,13 @@ struct ppm *ppm_read(const char *filename) {
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
                     // Check if the filetype is supported
                     char *ptr = NULL;
+                    if(string_length < 1) {
+                        warning_msg("%s: Obrázku \"%s\" má neplatnou výšku!", MODUL_NAME, filename);
+                        goto error;
+                    }
                     int height = strtol(string, &ptr, 10);
                     if(height == 0) {
+                        warning_msg("%s: Obrázku \"%s\" má neplatnou výšku!", MODUL_NAME, filename);
                         goto error;
                     }
 
@@ -126,11 +142,17 @@ struct ppm *ppm_read(const char *filename) {
             // I do not need to capcure this value, so we are just skipping it.
             case MAX_VALUE:
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    if(strcmp(string, SUPPORTED_MAX_VAL)) {
+                        warning_msg("%s: Program nezná barevné kódování obrázku \"%s\" (%s), podporované (%s)!", MODUL_NAME, filename, string, SUPPORTED_MAX_VAL);
+                        goto error;
+                    }
+
                     s = DATA;
                     free(string);
+                    string = NULL;
                     string_size = image->xsize * image->ysize * COLOR_CHANNELS;
                     string_length = 0;
-                    string = malloc(sizeof(char) * string_size);
+                    image = realloc(image, sizeof(image) + string_size);
                     break;
                 }
 
@@ -145,26 +167,21 @@ struct ppm *ppm_read(const char *filename) {
 
                 if (string_length+1 > string_size) {
                     // FIXME use error
-                    fprintf(stderr, "ppm: Příliš mnoho obrazových dat!\n");
+                    warning_msg("%s: Obrázek \"%s\" má příliš mnoho obrazových dat! (odčekáváno pouze %dB)", MODUL_NAME, filename, string_size);
                     goto error;
                 }
 
-                string[string_length++] = c;
+                image->data[string_length++] = c;
                 break;
         }
     }
 
     if (string_length != string_size) {
         // FIXME use error
-        fprintf(stderr, "ppm: Chybí obrazová data!\n");
+        warning_msg("%s: Obrázeku \"%s\" chybí obrazová data! (%dB z odčekáváných %dB)", MODUL_NAME, filename, string_length, string_size);
         goto error;
     }
 
-    #ifndef DEBUG
-    fprintf(stderr, "Načten obrázek height: %d, width: %d, celkem %dB\n", image->xsize, image->ysize, string_length);
-    #endif
-
-    image->data = string;
     fclose(file);
     return image;
 

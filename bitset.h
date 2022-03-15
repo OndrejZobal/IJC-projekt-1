@@ -1,12 +1,19 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <error.h>
+
+extern void warning_msg(const char *fmt, ...);
 
 #define BITS_IN_BYTE 8
+#define MODUL_NAME "bitset"
 // Typ bitového pole (pro předávání parametru do funkce odkazem).
 typedef unsigned long int *bitset_t;
 // Typ indexu do bitového pole.
 typedef unsigned long int bitset_index_t;
+
+extern void error_exit(const char *fmt, ...);
+extern void warning_msg(const char *fmt, ...);
 
 #define bitset_size_to_bits(size) size / (sizeof(bitset_index_t) * BITS_IN_BYTE) + 1 + (size % (sizeof(bitset_index_t) * BITS_IN_BYTE) != 0)
 
@@ -18,8 +25,7 @@ typedef unsigned long int bitset_index_t;
     assert(size > 0);                                            \
     bitset_t name = calloc(bitset_size_to_bits(size), sizeof(bitset_index_t));                    \
     if (name == NULL) { \
-        printf("cannot allocate memory!\n"); \
-        exit(1); \
+        error_exit("%s: Nelze alokovat paměť na hromadě!", MODUL_NAME); \
     } \
     name[0] = size
 
@@ -40,8 +46,7 @@ typedef unsigned long int bitset_index_t;
     \
     if (location >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) {\
         /* FIXME use error.h */ \
-        fprintf(stderr, "out of bounds\n"); \
-        exit(1); \
+        error_exit("%s: Byly překročeny hranice pole!", MODUL_NAME); \
     }\
     else {\
         bitset_index_t val = 1L << (location % (sizeof(bitset_index_t) * BITS_IN_BYTE));\
@@ -57,7 +62,7 @@ typedef unsigned long int bitset_index_t;
 
 #define bitset_getbit(array, index) ( \
     (index + sizeof(bitset_index_t) * BITS_IN_BYTE >= bitset_size(array) + sizeof(bitset_index_t) * BITS_IN_BYTE) ? \
-    exit(1),1 :                                                           \
+    error_exit("%s: Byly překročeny hranice pole!", MODUL_NAME),1 :\
     /* lisp moment */ \
     (int) (1 & (array[/*array_index */ ((/*location: */ index + sizeof(bitset_index_t) * BITS_IN_BYTE) / (sizeof(bitset_index_t) * BITS_IN_BYTE))] >> ((/* location: */ index + sizeof(bitset_index_t) * BITS_IN_BYTE) % ( /* size in bits */ sizeof(bitset_index_t) * BITS_IN_BYTE)))) \
     )
@@ -104,7 +109,6 @@ inline void bitset_setbit(bitset_t array, bitset_index_t index, int expression) 
     /* TODO is this needed?? */ 
 }
 
-extern void warning_msg(const char *fmt, ...);
 
 inline int bitset_getbit(bitset_t array, bitset_index_t index) {
     // location is index + 1 long in bits (for storing the size).
