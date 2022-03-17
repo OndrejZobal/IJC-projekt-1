@@ -1,3 +1,8 @@
+// steg-decode.c
+// Řešení IJC-DU1, příklad b), 20.3.2022
+// Autor: Ondřej Zobal, FIT
+// Přeloženo: gcc 11.2
+
 #include "ppm.h"
 #include "bitset.h"
 #include "eratosthenes.h"
@@ -11,25 +16,8 @@
 #define SECRET_MESSAGE_BUFFER_SIZE 300
 #define MODULE_NAME "steg-decode"
 
-void bit_matrix(bitset_t numbers) {
-    printf("\t\t1 2 3 4 5 6 7 8\n");
-    printf("\t\t---------------\n");
-    for(bitset_index_t i = 0; i < bitset_size(numbers)/8; i++) {
-        printf("  %ld - %ld:\t", i*8, i*8+7);
-        for(int j = 0; j < 8; j++) {
-            printf("%d ", bitset_getbit(numbers, (i*8)+j));
-        }
-        printf("\n");
-    }
-    int reminder = bitset_size(numbers) % 8;
-    printf("  %ld - %ld\t", bitset_size(numbers)-reminder, bitset_size(numbers)-1);
-    for(int i = 0; i < reminder; i++) {
-        printf("%d ", bitset_getbit(numbers, bitset_size(numbers)-reminder+i));
-    }
-    printf(reminder ? "END\n" : "\n");
-}
 
-void find_hidden_message(struct ppm *image, bitset_t primes, int start_index) {
+void print_hidden_message(struct ppm *image, bitset_t primes, int start_index) {
     assert(start_index < (int) bitset_size(primes));
 
     char c = 0;
@@ -38,7 +26,7 @@ void find_hidden_message(struct ppm *image, bitset_t primes, int start_index) {
         if (!bitset_getbit(primes, i)) {
             c |= (image->data[i+1] & 1) << pos++;
 
-            if (pos == BITS_IN_BYTE) {
+            if (pos == CHAR_BIT) {
                 if(c == '\0') {
                     printf("\n");
                     return;
@@ -69,6 +57,8 @@ int main(int argc, char **argv){
 
     Eratosthenes(bitset);
 
-    find_hidden_message(image, bitset, START_PRIME-1);
+    print_hidden_message(image, bitset, START_PRIME-1);
 
+    bitset_free(bitset);
+    ppm_free(image);
 }

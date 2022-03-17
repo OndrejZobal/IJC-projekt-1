@@ -1,3 +1,8 @@
+// eratosthenes.c
+// Řešení IJC-DU1, příklad a), 20.3.2022
+// Autor: Ondřej Zobal, FIT
+// Přeloženo: gcc 11.2
+
 #include <math.h>
 #include "eratosthenes.h"
 

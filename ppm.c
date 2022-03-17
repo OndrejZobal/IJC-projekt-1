@@ -1,3 +1,8 @@
+// ppm.c
+// Řešení IJC-DU1, příklad b), 20.3.2022
+// Autor: Ondřej Zobal, FIT
+// Přeloženo: gcc 11.2
+
 #include "ppm.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -80,6 +85,9 @@ struct ppm *ppm_read(const char *filename) {
         switch (s) {
             case MAGIC_NUMBER:
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    if(!string_length){
+                        continue;
+                    }
                     // Check if the filetype is supported
                     if(strcmp(PPM_MAGIC_NUMBER, string)) {
                         warning_msg("%s: Formát obrázku \"%s\" není podporován! Program podporuje formát PPM %s!", MODUL_NAME, filename, PPM_MAGIC_NUMBER);
@@ -94,6 +102,9 @@ struct ppm *ppm_read(const char *filename) {
 
             case WIDTH:
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    if(!string_length){
+                        continue;
+                    }
                     // Check if the filetype is supported
                     char *ptr = NULL;
                     if(string_length < 1) {
@@ -102,7 +113,6 @@ struct ppm *ppm_read(const char *filename) {
                     }
                     int width = strtol(string, &ptr, 10);
                     if(width == 0) {
-                        fprintf(stderr, "Nulova sirka\n");
                         warning_msg("%s: Obrázku \"%s\" má neplatnou šířku!", MODUL_NAME, filename);
                         goto error;
                     }
@@ -118,9 +128,12 @@ struct ppm *ppm_read(const char *filename) {
 
             case HEIGHT:
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    if(!string_length){
+                        continue;
+                    }
                     // Check if the filetype is supported
                     char *ptr = NULL;
-                    if(string_length < 1) {
+                    if(!string_length) {
                         warning_msg("%s: Obrázku \"%s\" má neplatnou výšku!", MODUL_NAME, filename);
                         goto error;
                     }
@@ -142,6 +155,10 @@ struct ppm *ppm_read(const char *filename) {
             // I do not need to capcure this value, so we are just skipping it.
             case MAX_VALUE:
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    if(!string_length){
+                        continue;
+                    }
+
                     if(strcmp(string, SUPPORTED_MAX_VAL)) {
                         warning_msg("%s: Program nezná barevné kódování obrázku \"%s\" (%s), podporované (%s)!", MODUL_NAME, filename, string, SUPPORTED_MAX_VAL);
                         goto error;
@@ -152,7 +169,13 @@ struct ppm *ppm_read(const char *filename) {
                     string = NULL;
                     string_size = image->xsize * image->ysize * COLOR_CHANNELS;
                     string_length = 0;
+
                     image = realloc(image, sizeof(image) + string_size);
+                    if (!image) {
+                        error_exit("%s: Nelze alokovat paměť na hromadě!", MODUL_NAME);
+                        goto error;
+                    }
+
                     break;
                 }
 
@@ -178,7 +201,7 @@ struct ppm *ppm_read(const char *filename) {
 
     if (string_length != string_size) {
         // FIXME use error
-        warning_msg("%s: Obrázeku \"%s\" chybí obrazová data! (%dB z odčekáváných %dB)", MODUL_NAME, filename, string_length, string_size);
+        warning_msg("%s: Obrázek \"%s\" postrádá data! (%dB z odčekáváných %dB)", MODUL_NAME, filename, string_length, string_size);
         goto error;
     }
 
@@ -190,4 +213,8 @@ error:
     if(image != NULL) free(image);
     if(file != NULL) fclose(file);
     return NULL;
+}
+
+void ppm_free(struct ppm *p) {
+    free(p);
 }

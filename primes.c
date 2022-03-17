@@ -1,4 +1,10 @@
+// primes.c
+// Řešení IJC-DU1, příklad a), 20.3.2022
+// Autor: Ondřej Zobal, FIT
+// Přeloženo: gcc 11.2
+
 #include <stdio.h>
+#include <time.h>
 #include "eratosthenes.h"
 
 #define LIMIT 300000000
@@ -20,6 +26,7 @@ void print_last_primes(bitset_t pole, int print_limit) {
 }
 
 int main() {
+    clock_t start = clock();
     bitset_alloc(numbers, LIMIT);
 
     Eratosthenes(numbers);
@@ -27,5 +34,7 @@ int main() {
     print_last_primes(numbers, PRINT_LIMIT);
 
     bitset_free(numbers);
+
+    fprintf(stderr, "Time=%.3g\n", (double)(clock()-start)/CLOCKS_PER_SEC);
     return 0;
 }

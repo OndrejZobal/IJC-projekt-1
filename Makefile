@@ -1,3 +1,7 @@
+# Makefile
+# Řešení IJC-DU1, příklad a), 20.3.2022
+# Autor: Ondřej Zobal, FIT
+
 CC = gcc
 CFLAGS = -std=c11 -pedantic -Wall -Wextra
 SUFFIX =
@@ -24,10 +28,10 @@ CFLAGS += -m32
 endif
 
 
-.PHONY: build run clean primes-i-full
+.PHONY: all run clean primes-i-full
 
 # Builds both variants of the program
-build: primes primes-i steg-decode
+all: primes primes-i steg-decode
 
 # Builds and runs both variants of the program
 run: build
@@ -44,7 +48,7 @@ clean:
 primes-i: primes$(SUFFIX).o eratosthenes$(SUFFIX).o error.o
 	make debug=$(debug) 32bit=$(32bit) USE_INLINE=1 primes-i-full
 
-# primes (exec), calls primes.o, eratosthenes.o and bitset.o
+# primes (exec)
 primes-i-full: primes$(SUFFIX).o eratosthenes$(SUFFIX).o error.o
 	$(CC) $(CFLAGS) -o primes-i $^ $(LIBS)
 
@@ -62,9 +66,11 @@ primes$(SUFFIX).o: primes.c eratosthenes.h
 eratosthenes$(SUFFIX).o: eratosthenes.c bitset.h
 	$(CC) $(CFLAGS) -c -o $@ eratosthenes.c
 
-# B
 ppm.o: ppm.c
 	$(CC) $(CFLAGS) -c -o $@ $^
 
-steg-decode: ppm.o steg-decode.c eratosthenes$(SUFFIX).o error.o
+steg-decode.o: steg-decode.c
+	$(CC) $(CFLAGS) -c -o $@ $^
+
+steg-decode: ppm.o eratosthenes$(SUFFIX).o error.o steg-decode.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
