@@ -7,7 +7,7 @@
 #include <time.h>
 #include "eratosthenes.h"
 
-#define LIMIT 300000000
+#define LIMIT 300000001
 #define PRINT_LIMIT 10
 
 void print_last_primes(bitset_t pole, int print_limit) {

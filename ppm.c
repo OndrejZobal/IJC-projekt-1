@@ -61,7 +61,7 @@ bool isCharInArray(const char c, const char whitespace[], int size) {
 }
 
 struct ppm *ppm_read(const char *filename) {
-    FILE *file = fopen(filename, "r");
+    FILE *file = fopen(filename, "rb");
 
     enum stage {MAGIC_NUMBER, WIDTH, HEIGHT, MAX_VALUE, DATA};
 
@@ -83,8 +83,11 @@ struct ppm *ppm_read(const char *filename) {
 
     while ((c = getc(file)) != EOF) {
         switch (s) {
+            // Checking if the file has a supported magic number.
             case MAGIC_NUMBER:
+                // Condition for transitioning into another state.
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    // Exception for multiple white characters at the beggining of a line.
                     if(!string_length){
                         continue;
                     }
@@ -100,8 +103,11 @@ struct ppm *ppm_read(const char *filename) {
                 add_char(&string, &string_size, &string_length, c);
                 break;
 
+            // Processing the width parameter of the image.
             case WIDTH:
+                // Condition for transitioning into another state.
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    // Exception for multiple white characters at the beggining of a line.
                     if(!string_length){
                         continue;
                     }
@@ -126,8 +132,11 @@ struct ppm *ppm_read(const char *filename) {
                 add_char(&string, &string_size, &string_length, c);
                 break;
 
+            // Processing the height of the image.
             case HEIGHT:
+                // Condition for transitioning into another state.
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    // Exception for multiple white characters at the beggining of a line.
                     if(!string_length){
                         continue;
                     }
@@ -152,9 +161,11 @@ struct ppm *ppm_read(const char *filename) {
                 add_char(&string, &string_size, &string_length, c);
                 break;
 
-            // I do not need to capcure this value, so we are just skipping it.
+            // Processing the max color value. Usually 255.
             case MAX_VALUE:
+                // Condition for transitioning into another state.
                 if(isCharInArray(c, whitespace, WHITESPACE_SIZE)) {
+                    // Exception for multiple white characters at the beggining of a line.
                     if(!string_length){
                         continue;
                     }
