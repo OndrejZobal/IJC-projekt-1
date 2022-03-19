@@ -46,11 +46,11 @@ primes: primes.o eratosthenes.o error.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 # primes.o
-primes.o: primes.c eratosthenes.h
+primes.o: primes.c eratosthenes.h bitset.h
 	$(CC) $(CFLAGS) -c -o $@ primes.c
 
 # eratosthenes.o
-eratosthenes.o: eratosthenes.c bitset.h
+eratosthenes.o: eratosthenes.c eratosthenes.h bitset.h
 	$(CC) $(CFLAGS) -c -o $@ eratosthenes.c
 
 # INLINES
@@ -59,11 +59,11 @@ primes-i: primes-i.o eratosthenes-i.o error.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 # primes-i.o
-primes-i.o: primes.c eratosthenes.h
+primes-i.o: primes.c eratosthenes.h bitset.h
 	$(CC) $(CFLAGS) -DUSE_INLINE -c -o $@ primes.c
 
 # eratosthenes.o
-eratosthenes-i.o: eratosthenes.c bitset.h
+eratosthenes-i.o: eratosthenes.c eratosthenes.h bitset.h
 	$(CC) $(CFLAGS) -DUSE_INLINE -c -o $@ eratosthenes.c
 
 ### B)
@@ -71,11 +71,11 @@ eratosthenes-i.o: eratosthenes.c bitset.h
 error.o: error.c error.h
 	$(CC) $(CFLAGS) -c -o $@ error.c
 
-ppm.o: ppm.c
-	$(CC) $(CFLAGS) -c -o $@ $^
+ppm.o: ppm.c ppm.h
+	$(CC) $(CFLAGS) -c -o $@ ppm.c
 
-steg-decode.o: steg-decode.c
-	$(CC) $(CFLAGS) -c -o $@ $^
+steg-decode.o: steg-decode.c ppm.h
+	$(CC) $(CFLAGS) -c -o $@ steg-decode.c
 
 # Linking steg-decode
 steg-decode: ppm.o eratosthenes.o error.o steg-decode.o
