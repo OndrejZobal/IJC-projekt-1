@@ -226,6 +226,18 @@ error:
     return NULL;
 }
 
+int ppm_write(struct ppm *image, const char* filename) {
+    FILE *file = fopen(filename, "w");
+    if(!file) {
+        return 0;
+    }
+
+    fprintf(file, "P6 %d %d 255\n", image->ysize, image->xsize);
+    fwrite(image->data, image->xsize * image->ysize * COLOR_CHANNELS, 1, file);
+    fclose(file);
+    return 1;
+}
+
 void ppm_free(struct ppm *p) {
     free(p);
 }

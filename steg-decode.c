@@ -38,8 +38,6 @@ void print_hidden_message(struct ppm *image, bitset_t primes, int start_index) {
             }
         }
     }
-
-    printf("\n");
 }
 
 int main(int argc, char **argv){
@@ -58,6 +56,7 @@ int main(int argc, char **argv){
     Eratosthenes(bitset);
 
     print_hidden_message(image, bitset, START_PRIME-1);
+    ppm_write(image, "newtestfile.ppm");
 
     bitset_free(bitset);
     ppm_free(image);

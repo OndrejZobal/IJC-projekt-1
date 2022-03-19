@@ -5,6 +5,7 @@ steg-decode
 
 # Object files
 *.o
+*.zip
 
 build/
 .vscode/

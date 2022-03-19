@@ -80,3 +80,9 @@ steg-decode.o: steg-decode.c
 # Linking steg-decode
 steg-decode: ppm.o eratosthenes.o error.o steg-decode.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
+
+steg-encode.o: steg-encode.c
+	$(CC) $(CFLAGS) -c -o $@ $^
+
+steg-encode: ppm.o eratosthenes$(SUFFIX).o error.o steg-encode.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
